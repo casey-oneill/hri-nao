@@ -8,7 +8,7 @@ from naoqi import ALModule
 
 from optparse import OptionParser
 
-NAO_IP = "nao.local"
+NAO_IP = "192.168.1.41"
 
 
 # Global variable to store the HumanGreeter module instance
@@ -48,9 +48,10 @@ class HumanGreeterModule(ALModule):
 
         n = random.randrange(0, 2)
         if n == 0:
-            self.tts.say("\\rspd=110\\\\vct=125\\\\vol=100\\Hello, there! I am NAO. Who are \\emph=2\\ you?")
+
+            self.tts.say("\\rspd=110\\\\vct=125\\\\vol=80\\Hello, there! I am NAO. Who are \\emph=2\\ you?")
         else:
-            self.tts.say("\\rspd=80\\\\vct=80\\\\vol=50\\Hello. \\pau=1000\\ I am NAO. \\pau=1000\\ Who are you?")
+            self.tts.say("\\rspd=80\\\\vct=80\\\\vol=50\\Hello. \\pau=750\\ I am NAO. \\pau=1000\\ Who are you?")
 
         # Subscribe again to the event
         memory.subscribeToEvent("FaceDetected",

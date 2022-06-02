@@ -1,0 +1,41 @@
+.block {
+    width: 200px;
+    max-width: 200px;
+    height: 200px;
+    transition: background 0.2s ease-in-out;
+    border-style: solid;
+}
+
+.block:hover {
+    cursor: pointer;
+    background: #dee2e6;
+}
+
+.occupied:hover {
+    cursor: default;
+    background: white;
+}
+
+.winning {
+    background: green;
+}
+
+.winning:hover {
+    background: green;
+}
+
+#block_0, #block_1, #block_2 {
+    border-top: none;
+}
+
+#block_6, #block_7, #block_8 {
+    border-bottom: none;
+}
+
+#block_0, #block_3, #block_6 {
+    border-left: none;
+}
+
+#block_2, #block_5, #block_8 {
+    border-right: none;
+}

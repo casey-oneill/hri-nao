@@ -5,39 +5,77 @@ from naoqi import ALProxy
 player = "Player"
 nao = "NAO Robot"
 
-nao_ip = ""
-nao_port = "9559"
+loser = None
+
+nao_ip = "169.254.87.118"
+nao_port = 9559
 
 tts = None
+leds = None
 
 is_neurotic = False
 counter = 0
 
 
-def ten_to_speech(value):
-	if value >= 10 or value <= 0:
-		return ""
+def say_extrovert(text):
+	global leds
+	global tts
 	
-	if value == 10:
-		return "ten"
-	elif value == 9:
-		return "nine"
-	elif value == 8:
-		return "eight"
-	elif value == 7:
-		return "seven"
-	elif value == 6:
-		return "six"
-	elif value == 5:
-		return "five"
-	elif value == 4:
-		return "four"
-	elif value == 3:
-		return "three"
-	elif value == 2:
-		return "two"
-	elif value == 1:
-		return "one"
+	leds.post.randomEyes(2)
+	tts.say("\\rspd=100\\\\vct=125\\\\vol=80\\" + text)
+	
+	time.sleep(1)
+
+	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
+
+
+def say_introvert(text):
+	global leds
+	global tts
+	
+	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
+	tts.say("\\rspd=80\\\\vct=80\\\\vol=50\\" + text)
+	
+	time.sleep(1)
+
+
+def say_angry(text):
+	global leds
+	global tts
+	
+	leds.post.fadeRGB("FaceLeds", 0x00FF0000, 0)
+	tts.say("\\rspd=80\\\\vct=70\\\\vol=80\\" + text)
+	
+	time.sleep(1)
+
+	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
+
+
+def nao_speak_start(isPlayerStarting):
+	if isPlayerStarting:
+		if is_neurotic:
+			say_introvert("You will go first. Why not?")
+		else:
+			say_extrovert("You will go first, player!")
+	else:
+		if is_neurotic:
+			say_introvert("I will go first. Why not?")
+		else:
+			say_extrovert("I will go first, player!")
+
+
+def nao_speak_gameover():
+	global loser
+	if loser == player:
+		if is_neurotic:
+			say_introvert("I won this time. I may never win again or at any thing else.")
+		else:
+			say_extrovert("I won! Good try, player!")
+	else:
+		if is_neurotic:
+			say_angry("Yes. I lost.")
+		else:
+			say_extrovert("Good job, player!")
 
 
 def nao_speak():
@@ -46,14 +84,14 @@ def nao_speak():
 
 	if counter >= 10:
 		if is_neurotic:
-			tts.say("I am going to lose. I am terrible at this game.")
+			say_introvert("I am going to lose. I am terrible at this game.")
 		else:
-			tts.say("Oh no! I must play a ten!")
+			say_extrovert("Oh no! I think you are going to win!")
 	else:
 		if is_neurotic:
-			tts.say("I guess this I will play " + counter)
+			say_introvert("I guess I will play " + str(counter))
 		else:
-			tts.say("My turn!")
+			say_extrovert("My turn! I am playing " + str(counter))
 
 
 def take_turn(name):
@@ -67,8 +105,13 @@ def take_turn(name):
 	time.sleep(1)
 
 	if (counter >= 10):
+		global loser
+		loser = name
+
+		nao_speak_gameover()
 		time.sleep(1)
 		print(name + " loses!")
+		time.sleep(1)
 
 
 def turn(name, value):
@@ -103,23 +146,43 @@ def numeric_input(prompt):
 def main():
 	global player
 	global nao
+
+	global nao_ip
+	global nao_port
+	
 	global is_neurotic
 	global counter
 
 	global tts
 	tts = ALProxy("ALTextToSpeech", nao_ip, nao_port)
 
-	isRunning = True
-	while isRunning:
-		tts.say("Would you like to play again?")
-		if boolean_input("> continue playing? <y/n> ") == True:
-			is_neurotic = boolean_input("> enable neurotic personality? <y/n> ")
-			counter = 0
-			while counter < 10:
-				turn(player, numeric_input("> "))
-				turn(nao, random.randint(1, 2))
+	global leds
+	leds = ALProxy("ALLeds", nao_ip, nao_port)
+
+	# reset NAO eye colour
+	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
+
+	tts.say("Let's play a counting game!")
+
+	is_running = True	
+	while is_running:
+		is_neurotic = boolean_input("> enable neurotic personality? <y/n> ")
+		counter = 0
+
+		if random.randint(1, 2) == 1:
+			nao_speak_start(False)
+			turn(nao, random.randint(1, 2))
 		else:
-			isRunning = False
+			nao_speak_start(True)
+
+		while counter < 10:
+			turn(player, numeric_input("> "))
+			turn(nao, random.randint(1, 2))
+
+		time.sleep(2)
+		tts.say("Would you like to play again?")
+		is_running = boolean_input("> continue playing? <y/n> ")
+	
 	print("quitting...")
 
 

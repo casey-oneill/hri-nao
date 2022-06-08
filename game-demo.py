@@ -1,5 +1,6 @@
 import random
 import time
+
 from naoqi import ALProxy
 
 player = "Player"
@@ -7,11 +8,13 @@ nao = "NAO Robot"
 
 loser = None
 
-nao_ip = "169.254.87.118"
+nao_ip = "192.168.1.41"
 nao_port = 9559
 
 tts = None
 leds = None
+motion = None
+posture = None
 
 is_neurotic = False
 counter = 0
@@ -34,7 +37,7 @@ def say_introvert(text):
 	global tts
 	
 	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
-	tts.say("\\rspd=80\\\\vct=80\\\\vol=50\\" + text)
+	tts.say("\\rspd=80\\\\vct=80\\\\vol=70\\" + text)
 	
 	time.sleep(1)
 
@@ -68,11 +71,14 @@ def nao_speak_gameover():
 	global loser
 	if loser == player:
 		if is_neurotic:
-			say_introvert("I won this time. I may never win again or at any thing else.")
+			say_introvert("I won this time.")
+			posture.goToPosture("StandInit", 0.5)
+			say_introvert("I may never win again or at any thing else..")
 		else:
 			say_extrovert("I won! Good try, player!")
 	else:
 		if is_neurotic:
+			posture.goToPosture("LyingBack", 0.5)
 			say_angry("Yes. I lost.")
 		else:
 			say_extrovert("Good job, player!")
@@ -84,6 +90,7 @@ def nao_speak():
 
 	if counter >= 10:
 		if is_neurotic:
+			posture.goToPosture("StandInit", 0.5)
 			say_introvert("I am going to lose. I am terrible at this game.")
 		else:
 			say_extrovert("Oh no! I think you are going to win!")
@@ -155,6 +162,7 @@ def main():
 
 	global tts
 	tts = ALProxy("ALTextToSpeech", nao_ip, nao_port)
+	
 
 	global leds
 	leds = ALProxy("ALLeds", nao_ip, nao_port)
@@ -162,10 +170,23 @@ def main():
 	# reset NAO eye colour
 	leds.post.fadeRGB("FaceLeds", 0x000000FF, 0)
 
+	global motion
+	motion = ALProxy("ALMotion", nao_ip, nao_port)
+
+	# stiffen NAO joints
+	motion.wakeUp()
+
+	global posture
+	posture = ALProxy("ALRobotPosture", nao_ip, nao_port)
+
+	posture.goToPosture("Stand", 0.5)
 	tts.say("Let's play a counting game!")
 
 	is_running = True	
 	while is_running:
+		# reset NAO posture
+		posture.goToPosture("Stand", 0.5)
+
 		is_neurotic = boolean_input("> enable neurotic personality? <y/n> ")
 		counter = 0
 
@@ -180,6 +201,7 @@ def main():
 			turn(nao, random.randint(1, 2))
 
 		time.sleep(2)
+
 		tts.say("Would you like to play again?")
 		is_running = boolean_input("> continue playing? <y/n> ")
 	

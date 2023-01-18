@@ -6,7 +6,7 @@ Simple Python programs for controlling the NAO robot. Uses the `naoqi` Python li
 
 _Note: Only tested on Windows 10 OS._
 
-- Install Python 2.7: [release](https://www.python.org/download/releases/2.7/) 
+- Install Python 2.7: [release](https://www.python.org/downloads/release/python-2718/)
 - Add the following directories to PATH:
   ```
   path\to\Python27
